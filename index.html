@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Flying Course Planner</title>
+
+<link rel="manifest" href="manifest.json">
+
+<meta name="theme-color" content="#0b2f6b">
+
+<link rel="icon" href="favicon.ico">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:#eef2f7;
+    font-family:Arial, Helvetica, sans-serif;
+    padding:20px;
+}
+
+/* ===========================
+CONTROL PANEL
+=========================== */
+
+.panel{
+    background:white;
+    padding:25px;
+    border-radius:14px;
+    margin-bottom:20px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+
+.panel h2{
+    color:#0b2f6b;
+    margin-bottom:20px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:16px;
+}
+
+.group{
+    display:flex;
+    flex-direction:column;
+}
+
+.group label{
+    font-weight:700;
+    margin-bottom:6px;
+    font-size:14px;
+}
+
+.group input,
+.group select{
+    padding:10px;
+    border-radius:8px;
+    border:1px solid #bbb;
+}
+
+button{
+    margin-top:20px;
+    padding:14px 22px;
+    border:none;
+    border-radius:10px;
+    font-weight:700;
+    cursor:pointer;
+    margin-right:10px;
+}
+
+.generate{
+    background:#0b2f6b;
+    color:white;
+}
+
+.pdf{
+    background:#198754;
+    color:white;
+}
+
+/* ===========================
+PLANNER
+=========================== */
+
+#planner{
+    width:1450px;
+    margin:auto;
+    background:white;
+    border:3px solid #0b2f6b;
+}
+
+.header{
+    background:#0b2f6b;
+    color:white;
+    text-align:center;
+    padding:18px;
+}
+
+.header h1{
+    font-size:38px;
+    margin-bottom:8px;
+}
+
+.header p{
+    font-size:18px;
+    font-weight:600;
+}
+
+.targets{
+    display:grid;
+    grid-template-columns:250px repeat(auto-fit,minmax(120px,1fr));
+}
+
+.targets div{
+    border:1px solid #999;
+    padding:12px;
+    text-align:center;
+    font-weight:700;
+}
+
+.target-title{
+    background:#163d80;
+    color:white;
+}
+
+.target-box{
+    background:#f4f6fb;
+}
+
+.target-box span{
+    display:block;
+    margin-bottom:5px;
+    color:#0b2f6b;
+}
+
+.months{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+    padding:18px;
+}
+
+.month{
+    border:2px solid #0b2f6b;
+    page-break-inside:avoid;
+}
+
+.month-title{
+    background:#163d80;
+    color:white;
+    padding:10px;
+    text-align:center;
+    font-size:22px;
+    font-weight:800;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th{
+    background:#0b2f6b;
+    color:white;
+    border:1px solid #aaa;
+    padding:7px;
+    font-size:12px;
+}
+
+td{
+    border:1px solid #ccc;
+    padding:6px;
+    font-size:11px;
+    text-align:center;
+}
+
+.week{
+    background:#dbe7ff;
+    color:#0b2f6b;
+    font-weight:700;
+}
+
+.full{
+    color:#0b57d0;
+    font-weight:700;
+}
+
+.half{
+    color:#d97706;
+    font-weight:700;
+}
+
+.weekend{
+    color:#d62828;
+    font-weight:700;
+}
+
+.holiday{
+    color:#198754;
+    font-weight:700;
+}
+
+.total{
+    background:#fff3bf;
+    font-weight:800;
+}
+
+.footer{
+    background:#0b2f6b;
+    color:white;
+    text-align:center;
+    padding:18px;
+    font-size:22px;
+    font-weight:800;
+}
+
+@media print{
+
+    @page{
+        size:A3 landscape;
+        margin:5mm;
+    }
+
+    body{
+        background:white;
+    }
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- ===========================
+CONTROL PANEL
+=========================== -->
+
+<div class="panel">
+
+    <h2>Flying Course Planner</h2>
+
+    <div class="grid">
+
+        <div class="group">
+
+            <label>Training Stage</label>
+
+            <select id="stageSelect">
+
+                <option value="1">
+                    Stage I
+                </option>
+
+                <option value="2">
+                    Stage II
+                </option>
+
+            </select>
+
+        </div>
+
+        <div class="group">
+
+            <label>Start Date</label>
+
+            <input
+            type="date"
+            id="startDate"
+            value="2026-06-23">
+
+        </div>
+
+        <div class="group">
+
+            <label>End Date</label>
+
+            <input
+            type="date"
+            id="endDate"
+            value="2026-11-28">
+
+        </div>
+
+    </div>
+
+    <br>
+
+    <!-- REMARKS -->
+
+    <div class="grid">
+
+        <div class="group">
+
+            <label>Full Flying Remark</label>
+
+            <input
+            type="text"
+            id="remarkFull"
+            value="Full Flying">
+
+        </div>
+
+        <div class="group">
+
+            <label>Bad WX Remark</label>
+
+            <input
+            type="text"
+            id="remarkBad"
+            value="Bad WX">
+
+        </div>
+
+        <div class="group">
+
+            <label>Government Holiday Remark</label>
+
+            <input
+            type="text"
+            id="remarkHoliday"
+            value="Government Holiday">
+
+        </div>
+
+        <div class="group">
+
+            <label>Weekend Remark</label>
+
+            <input
+            type="text"
+            id="remarkWeekend"
+            value="Weekend">
+
+        </div>
+
+    </div>
+
+    <br>
+
+    <!-- DYNAMIC MONTH INPUTS -->
+
+    <div
+    class="grid"
+    id="monthInputsContainer">
+
+    </div>
+
+    <button
+    class="generate"
+    onclick="generatePlanner()">
+
+    Generate Planner
+
+    </button>
+
+    <button
+    class="pdf"
+    onclick="downloadPDF()">
+
+    Download PDF
+
+    </button>
+
+</div>
+
+<!-- ===========================
+PLANNER
+=========================== -->
+
+<div id="planner">
+
+    <div class="header">
+
+        <h1 id="plannerTitle">
+            STAGE I FLYING COURSE
+        </h1>
+
+        <p>
+            AUTO GENERATED PROGRESSIVE PLAN
+        </p>
+
+    </div>
+
+    <div
+    class="targets"
+    id="targets">
+
+    </div>
+
+    <div
+    class="months"
+    id="months">
+
+    </div>
+
+    <div
+    class="footer"
+    id="grandTotal">
+
+    GRAND TOTAL HOURS : 0
+
+    </div>
+
+</div>
+
+<script>
+
+/* ===========================
+HOLIDAYS
+=========================== */
+
+let holidays = [
+
+    "2026-08-15",
+    "2026-10-02",
+    "2026-10-24",
+    "2026-11-14",
+    "2026-11-26"
+
+];
+
+/* ===========================
+STAGE CONFIGS
+=========================== */
+
+const stageConfigs = {
+
+    1:{
+
+        title:
+        "STAGE I FLYING COURSE",
+
+        maxDaily:50,
+
+        progressive:[
+            0.7,
+            0.85,
+            1,
+            1.1
+        ]
+    },
+
+    2:{
+
+        title:
+        "STAGE II FLYING COURSE",
+
+        maxDaily:110,
+
+        progressive:[
+            0.9,
+            1,
+            1.15,
+            1.25
+        ]
+    }
+};
+
+/* ===========================
+AUTO MONTH INPUTS
+=========================== */
+
+function generateMonthInputs(){
+
+    const container =
+    document.getElementById(
+        "monthInputsContainer"
+    );
+
+    container.innerHTML = "";
+
+    const start =
+    new Date(
+        document.getElementById(
+            "startDate"
+        ).value
+    );
+
+    const end =
+    new Date(
+        document.getElementById(
+            "endDate"
+        ).value
+    );
+
+    let current =
+    new Date(
+        start.getFullYear(),
+        start.getMonth(),
+        1
+    );
+
+    while(current <= end){
+
+        const month =
+        current.getMonth();
+
+        const year =
+        current.getFullYear();
+
+        const monthName =
+        current.toLocaleString(
+            "default",
+            { month:"long" }
+        );
+
+        container.innerHTML += `
+
+        <div class="group">
+
+            <label>
+                ${monthName} ${year} Hours
+            </label>
+
+            <input
+            type="number"
+            id="hrs-${month}-${year}"
+            value="1000">
+
+        </div>
+
+        <div class="group">
+
+            <label>
+                ${monthName} ${year}
+                Bad WX Days
+            </label>
+
+            <input
+            type="number"
+            id="bad-${month}-${year}"
+            value="4">
+
+        </div>
+
+        `;
+
+        current.setMonth(
+            current.getMonth()+1
+        );
+    }
+}
+
+/* ===========================
+MAIN GENERATOR
+=========================== */
+
+function generatePlanner(){
+
+    const selectedStage =
+    document.getElementById(
+        "stageSelect"
+    ).value;
+
+    const stage =
+    stageConfigs[selectedStage];
+
+    document.getElementById(
+        "plannerTitle"
+    ).innerText =
+    stage.title;
+
+    const remarkConfig = {
+
+        full:
+        document.getElementById(
+            "remarkFull"
+        ).value,
+
+        bad:
+        document.getElementById(
+            "remarkBad"
+        ).value,
+
+        holiday:
+        document.getElementById(
+            "remarkHoliday"
+        ).value,
+
+        weekend:
+        document.getElementById(
+            "remarkWeekend"
+        ).value
+    };
+
+    const monthsDiv =
+    document.getElementById("months");
+
+    monthsDiv.innerHTML = "";
+
+    const targetsDiv =
+    document.getElementById("targets");
+
+    targetsDiv.innerHTML = "";
+
+    const monthInputs = {};
+
+    const start =
+    new Date(
+        document.getElementById(
+            "startDate"
+        ).value
+    );
+
+    const end =
+    new Date(
+        document.getElementById(
+            "endDate"
+        ).value
+    );
+
+    let current =
+    new Date(
+        start.getFullYear(),
+        start.getMonth(),
+        1
+    );
+
+    while(current <= end){
+
+        const month =
+        current.getMonth();
+
+        const year =
+        current.getFullYear();
+
+        monthInputs[
+            `${month}-${year}`
+        ] = {
+
+            hrs:+document.getElementById(
+                `hrs-${month}-${year}`
+            ).value,
+
+            bad:+document.getElementById(
+                `bad-${month}-${year}`
+            ).value
+        };
+
+        current.setMonth(
+            current.getMonth()+1
+        );
+    }
+
+    /* TARGETS */
+
+    targetsDiv.innerHTML += `
+
+    <div class="target-title">
+        MONTHLY TARGET HOURS
+    </div>
+
+    `;
+
+    let grandTotal = 0;
+
+    Object.keys(monthInputs)
+    .forEach(key=>{
+
+        const [month,year] =
+        key.split("-");
+
+        const date =
+        new Date(year,month);
+
+        const shortMonth =
+        date.toLocaleString(
+            "default",
+            { month:"short" }
+        ).toUpperCase();
+
+        targetsDiv.innerHTML += `
+
+        <div class="target-box">
+
+            <span>${shortMonth}</span>
+
+            ${monthInputs[key].hrs}
+
+        </div>
+
+        `;
+
+        grandTotal +=
+        monthInputs[key].hrs;
+    });
+
+    /* MONTH TABLES */
+
+    current =
+    new Date(
+        start.getFullYear(),
+        start.getMonth(),
+        1
+    );
+
+    while(current <= end){
+
+        const month =
+        current.getMonth();
+
+        const year =
+        current.getFullYear();
+
+        const key =
+        `${month}-${year}`;
+
+        let monthDays = [];
+
+        let tempDate =
+        new Date(year,month,1);
+
+        while(
+            tempDate.getMonth() === month
+        ){
+
+            if(
+                tempDate >= start &&
+                tempDate <= end
+            ){
+
+                monthDays.push(
+                    new Date(tempDate)
+                );
+            }
+
+            tempDate.setDate(
+                tempDate.getDate()+1
+            );
+        }
+
+        generateMonth(
+            monthDays,
+            month,
+            year,
+            monthInputs[key],
+            stage,
+            remarkConfig
+        );
+
+        current.setMonth(
+            current.getMonth()+1
+        );
+    }
+
+    document.getElementById(
+        "grandTotal"
+    ).innerText =
+
+    "GRAND TOTAL HOURS : " +
+    grandTotal;
+}
+
+/* ===========================
+GENERATE MONTH
+=========================== */
+
+function generateMonth(
+days,
+month,
+year,
+config,
+stage,
+remarkConfig
+){
+
+    const monthsDiv =
+    document.getElementById(
+        "months"
+    );
+
+    let flyingDays = [];
+
+    days.forEach(d=>{
+
+        const day =
+        d.getDay();
+
+        const iso =
+        d.toISOString().split("T")[0];
+
+        if(
+            day !== 0 &&
+            day !== 6 &&
+            !holidays.includes(iso)
+        ){
+            flyingDays.push(d);
+        }
+    });
+
+    const effectiveDays =
+    flyingDays.length -
+    (config.bad * 0.5);
+
+    let hrsPerDay =
+    Math.ceil(
+        config.hrs /
+        effectiveDays
+    );
+
+    hrsPerDay =
+    Math.min(
+        hrsPerDay,
+        stage.maxDaily
+    );
+
+    /* BAD WX DISTRIBUTION */
+
+    let weeksMap = {};
+
+    days.forEach((d,index)=>{
+
+        let weekNum =
+        Math.ceil((index+1)/7);
+
+        if(!weeksMap[weekNum]){
+            weeksMap[weekNum] = [];
+        }
+
+        weeksMap[weekNum].push(d);
+    });
+
+    const totalWeeks =
+    Object.keys(weeksMap).length;
+
+    const badPerWeek =
+    Math.floor(
+        config.bad / totalWeeks
+    );
+
+    let remainingBad =
+    config.bad % totalWeeks;
+
+    let badWxDates = [];
+
+    Object.values(weeksMap)
+    .forEach(weekDays=>{
+
+        let weekBad = badPerWeek;
+
+        if(remainingBad > 0){
+
+            weekBad++;
+            remainingBad--;
+        }
+
+        let assigned = 0;
+
+        for(let d of weekDays){
+
+            const iso =
+            d.toISOString().split("T")[0];
+
+            if(
+                d.getDay() !== 0 &&
+                d.getDay() !== 6 &&
+                !holidays.includes(iso)
+            ){
+
+                badWxDates.push(iso);
+
+                assigned++;
+
+                if(
+                    assigned >= weekBad
+                ){
+                    break;
+                }
+            }
+        }
+    });
+
+    /* TABLE */
+
+    const monthTitle =
+    new Date(year,month)
+    .toLocaleString(
+        "default",
+        {
+            month:"long",
+            year:"numeric"
+        }
+    );
+
+    let table = `
+
+    <div class="month">
+
+    <div class="month-title">
+        ${monthTitle}
+    </div>
+
+    <table>
+
+    <thead>
+
+    <tr>
+
+        <th>DATE</th>
+        <th>DAY</th>
+        <th>HOURS</th>
+        <th>REMARKS</th>
+
+    </tr>
+
+    </thead>
+
+    <tbody>
+
+    `;
+
+    let week = 1;
+
+    table += `
+
+    <tr class="week">
+
+        <td colspan="4">
+            WEEK ${week}
+        </td>
+
+    </tr>
+
+    `;
+
+    days.forEach((d,index)=>{
+
+        if(
+            index !== 0 &&
+            d.getDay() === 1
+        ){
+
+            week++;
+
+            table += `
+
+            <tr class="week">
+
+                <td colspan="4">
+                    WEEK ${week}
+                </td>
+
+            </tr>
+
+            `;
+        }
+
+        const iso =
+        d.toISOString().split("T")[0];
+
+        const dayName =
+        d.toLocaleDateString(
+            "en-US",
+            { weekday:"short" }
+        );
+
+        const formatted =
+        d.getDate()+"-"+
+
+        d.toLocaleString(
+            "default",
+            { month:"short" }
+        ).toUpperCase();
+
+        let hrs = "-";
+        let remarks = "";
+        let cls = "";
+
+        const weekMultiplier =
+        stage.progressive[
+            (week-1) %
+            stage.progressive.length
+        ];
+
+        /* WEEKEND */
+
+        if(
+            d.getDay()===0 ||
+            d.getDay()===6
+        ){
+
+            remarks =
+            remarkConfig.weekend;
+
+            cls = "weekend";
+        }
+
+        /* HOLIDAY */
+
+        else if(
+            holidays.includes(iso)
+        ){
+
+            remarks =
+            remarkConfig.holiday;
+
+            cls = "holiday";
+        }
+
+        /* BAD WX */
+
+        else if(
+            badWxDates.includes(iso)
+        ){
+
+            hrs =
+            Math.round(
+                (hrsPerDay *
+                weekMultiplier)/2
+            );
+
+            remarks =
+            remarkConfig.bad;
+
+            cls = "half";
+        }
+
+        /* FULL PLAN */
+
+        else{
+
+            hrs =
+            Math.round(
+                hrsPerDay *
+                weekMultiplier
+            );
+
+            remarks =
+            remarkConfig.full;
+
+            cls = "full";
+        }
+
+        table += `
+
+        <tr>
+
+            <td>${formatted}</td>
+
+            <td>${dayName}</td>
+
+            <td>${hrs}</td>
+
+            <td class="${cls}">
+                ${remarks}
+            </td>
+
+        </tr>
+
+        `;
+    });
+
+    table += `
+
+    <tr class="total">
+
+        <td colspan="4">
+
+            TOTAL HOURS :
+            ${config.hrs}
+
+        </td>
+
+    </tr>
+
+    `;
+
+    table += `
+
+    </tbody>
+    </table>
+    </div>
+
+    `;
+
+    monthsDiv.innerHTML += table;
+}
+
+/* ===========================
+DOWNLOAD PDF
+=========================== */
+
+function downloadPDF(){
+
+    const element =
+    document.getElementById(
+        "planner"
+    );
+
+    html2pdf().set({
+
+        margin:0.2,
+
+        filename:
+        "Flying_Planner.pdf",
+
+        image:{
+            type:"jpeg",
+            quality:1
+        },
+
+        html2canvas:{
+            scale:2
+        },
+
+        jsPDF:{
+            unit:"in",
+            format:"a3",
+            orientation:"landscape"
+        }
+
+    }).from(element).save();
+}
+
+/* ===========================
+EVENTS
+=========================== */
+
+document.getElementById(
+    "startDate"
+).addEventListener(
+    "change",
+    generateMonthInputs
+);
+
+document.getElementById(
+    "endDate"
+).addEventListener(
+    "change",
+    generateMonthInputs
+);
+
+/* ===========================
+INITIAL LOAD
+=========================== */
+
+generateMonthInputs();
+
+generatePlanner();
+
+</script>
+
+</body>
+</html>
