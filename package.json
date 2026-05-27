@@ -1,0 +1,24 @@
+{
+  "name": "flying-course-planner",
+  "version": "2.0.0",
+  "description": "Military style flying planner generator",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve .",
+    "dev": "live-server ."
+  },
+  "keywords": [
+    "aviation",
+    "planner",
+    "military",
+    "flying",
+    "pwa",
+    "pdf"
+  ],
+  "author": "Ajay Sharma",
+  "license": "MIT",
+  "dependencies": {
+    "serve": "^14.2.1",
+    "live-server": "^1.2.2"
+  }
+}
